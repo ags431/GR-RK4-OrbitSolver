@@ -10,13 +10,13 @@ c = 1.0 #3*(10**8)
 
 rinner = 6.0*G*M/(c**2) #548629.733
 
-hVariation = 1 #set to 1 to automatically vary h with speed; set to 0 to use a fixed h ===!!!!!===
+hVariation = 0 #set to 1 to automatically vary h with speed; set to 0 to use a fixed h ===!!!!!===
 # FOR FIXED H
 h = 1.0 #timestep to use when not varying h; proper time
 # FOR VARYING H
 hscale = 0.1 #the time step to use when v = c
-maxH = 10000.0 #maximum H
-minH = 1.0 #minimum H
+maxH = 100.0 #maximum H
+minH = 0.0001 #minimum H
 
 maxOrbits = 2.0
 
@@ -52,21 +52,25 @@ uphis = [uphii]
 
 index = 0
 
-def transitOrbit(rstop, urboost, uphiboost):
+def transitOrbit(rstop, router):
+
+    # determine ur and uphi impulse from ro
+
+    l = np.sqrt((-1.0/rorbit + 1.0/rstop)/(1/(rstop**2) - 1/(rorbit**2) - 2/(rstop**3) + 2/(rorbit**3))
     
     global index
     global h
     
     startingRadius = rs[index]
     
-    urs[index] += urboost
+    uts[index] += utboost
     uphis[index] += uphiboost
     
     #normalize
     gtt = -(1.0 - 2.0*G*M/(rs[index]*(c**2)))
     grr = 1.0/(-gtt)
     gphiphi = rs[index]**2
-    uts[index] = (-1.0 - grr*(urs[index]**2) - gphiphi*(uphis[index]**2))/gtt
+    urs[index] = (-1.0 - gtt*(uts[index]**2) - gphiphi*(uphis[index]**2))/grr
     
     print("time to loop!")
     
@@ -95,7 +99,8 @@ def transitOrbit(rstop, urboost, uphiboost):
             elif h < minH:
                 h = minH
                 
-            print("h", h, "speed", speed)
+            print(h)
+            print(speed)
         
         #using p to denote prime
         #using c to denote current
@@ -160,21 +165,21 @@ def transitOrbit(rstop, urboost, uphiboost):
 # polar plot
 
 # ============ ADD TRANSIT ORBITS HERE ==================
-# transitOrbit( rStop, urBoost, uphiBoost)
+# transitOrbit( rStop, rOuter)
 # rStop - the radius to "stop the transit orbit" at; this can be used to make successive transit orbits, in which this would be the radius at which to switch to another orbit
-# urBoost - the boost in ur given to the pod to changed to the new transit orbit
-# uphiBoost - the boost in uphi given to the pod to change to the new transit orbit
+# rOuter - outer radius of the transfer orbit to take
 # function will return 0 if the orbit reached rStop normally, 1 if the orbit returned to the original radius again without reaching rStop
 
-# determine ur and uphi impulse from router
+roMultipliers = [1.0, 10.0, 100.0, 1000.0, 10000.0]
+currentMultiplier = 0
 
-
+router = ri*roMultipliers[currentMultiplier]
 
 # example orbit
-ret = transitOrbit(rinner, 0, (-0.997)*uphii)
+ret = transitOrbit(rinner, router)
 if ret == 0:
     # successive orbits here
-    #ret = transitOrbit(rinner, 0, -uphis[len(uphis)-1]*0.999)
+    #ret = transitOrbit(rinner, router)
     if ret == 0:
         # each successive orbit is wrapped in another if
         print("placeholder")
