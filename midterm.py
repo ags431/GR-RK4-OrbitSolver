@@ -12,7 +12,7 @@ rinner = 6.0*G*M/(c**2) #548629.733
 
 hVariation = 0 #set to 1 to automatically vary h with speed; set to 0 to use a fixed h ===!!!!!===
 # FOR FIXED H
-h = 0.0001 #timestep to use when not varying h; proper time
+h = 1.0 #timestep to use when not varying h; proper time
 # FOR VARYING H
 hscale = 0.1 #the time step to use when v = c
 maxH = 100.0 #maximum H
