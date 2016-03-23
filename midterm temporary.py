@@ -30,6 +30,15 @@ def rPP(t, r, phi, ut, ur, uphi):
 
 def phiPP(t, r, phi, ut, ur, uphi):
     return -2*ur*uphi/r
+
+def gtt(r):
+    return -(1.0 - 2.0*G*M/(r*(c**2)))
+
+def grr(r):
+    return 1/(1.0 - 2.0*G*M/(r*(c**2)))
+
+def gphiphi(r):
+    return (r**2)
     
 def linearSpeed(r, ur, uphi):
     return np.sqrt(ur**2 + (uphi*r)**2)
@@ -53,23 +62,32 @@ uphis = [uphii]
 index = 0
 
 def transitOrbit(rstop, router):
+    
+    # initial metric constants
+    gttri = gtt(rs[index])
+    grrri = grr(rs[index])
+    gphiphiri = gphiphi(rs[index])
 
     # determine ur and uphi impulse from ro
 
-    l = np.sqrt((-1.0/rorbit + 1.0/rstop)/(1/(rstop**2) - 1/(rorbit**2) - 2/(rstop**3) + 2/(rorbit**3))
+    l = np.sqrt((-1.0/router + 1.0/rstop)/(1.0/(rstop**2) - 1.0/(router**2) - 2.0/(rstop**3) + 2.0/(router**3)))
+    e = np.sqrt(gtt(router)*(-1 - (l**2)/gphiphi(router)))
+    
+    utorbit = e/gtt(rs[index])
+    uphiorbit = l/gphiphi(rs[index])
+    
+    utboost = utorbit - uts[index]
+    uphiboost = uphiorbit - uphis[index]
     
     global index
     global h
     
     startingRadius = rs[index]
     
-    uts[index] += utboost
-    uphis[index] += uphiboost
+    uts[index] = utorbit
+    uphis[index] = uphiorbit
     
     #normalize
-    gtt = -(1.0 - 2.0*G*M/(rs[index]*(c**2)))
-    grr = 1.0/(-gtt)
-    gphiphi = rs[index]**2
     urs[index] = (-1.0 - gtt*(uts[index]**2) - gphiphi*(uphis[index]**2))/grr
     
     print("time to loop!")

@@ -16,7 +16,7 @@ h = 1.0 #timestep to use when not varying h; proper time
 # FOR VARYING H
 hscale = 0.1 #the time step to use when v = c
 maxH = 10000.0 #maximum H
-minH = 1.0 #minimum H
+minH = 0.1 #minimum H
 
 maxOrbits = 2.0
 
