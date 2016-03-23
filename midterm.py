@@ -36,7 +36,7 @@ def linearSpeed(r, ur, uphi):
 
 properi = 0.0
 ti = 0.0
-ri = 10.0 #1640450.646 #1.5*(10**11)
+ri = 1640450.646 #1.5*(10**11)
 phii = 0.0
 uti = 1.0/np.sqrt(1-(3.0*M)/(ri))
 uri = 0.0
@@ -168,6 +168,8 @@ def transitOrbit(rstop, urboost, uphiboost):
 # function will return 0 if the orbit reached rStop normally, 1 if the orbit returned to the original radius again without reaching rStop
 
 # determine ur and uphi impulse from router
+
+
 
 # example orbit
 ret = transitOrbit(rinner, 0, (-0.997)*uphii)
