@@ -275,7 +275,7 @@ router = rship*roMultipliers[currentMultiplier]
 # example orbit
 
 # Hoffman transfer
-ret = transitOrbit(rinner, rinner, router)
+ret = transitOrbit(rinner, rinner, rship)
 
 # Bielliptical transfer
 #print("transit orbit 1")
