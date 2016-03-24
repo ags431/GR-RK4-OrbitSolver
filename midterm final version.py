@@ -49,7 +49,7 @@ def linearSpeed(r, ur, uphi):
 
 properi = 0.0
 ti = 0.0
-ri = rinner #rship
+ri = rship
 phii = 0.0
 uti = 1.0/np.sqrt(1-(3.0*M)/(ri))
 uri = 0.0
