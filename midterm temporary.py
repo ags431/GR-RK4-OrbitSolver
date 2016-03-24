@@ -8,15 +8,17 @@ G = 1.0 #6.67*(10**-11)
 
 c = 1.0 #3*(10**8)
 
+rship = 1640450.646 #1.5*(10**11)
+
 rinner = 6.0*G*M/(c**2) #548629.733
 
-hVariation = 0 #set to 1 to automatically vary h with speed; set to 0 to use a fixed h ===!!!!!===
+hVariation = 1 #set to 1 to automatically vary h with speed; set to 0 to use a fixed h ===!!!!!===
 # FOR FIXED H
-h = 1.0 #timestep to use when not varying h; proper time
+h = 1000.0 #timestep to use when not varying h; proper time
 # FOR VARYING H
 hscale = 0.1 #the time step to use when v = c
-maxH = 100.0 #maximum H
-minH = 0.0001 #minimum H
+maxH = 10000.0 #maximum H
+minH = 1.0 #minimum H
 
 maxOrbits = 2.0
 
@@ -45,7 +47,7 @@ def linearSpeed(r, ur, uphi):
 
 properi = 0.0
 ti = 0.0
-ri = 1640450.646 #1.5*(10**11)
+ri = rship
 phii = 0.0
 uti = 1.0/np.sqrt(1-(3.0*M)/(ri))
 uri = 0.0
@@ -61,7 +63,16 @@ uphis = [uphii]
 
 index = 0
 
-def transitOrbit(rstop, router):
+def transitOrbit(rstop, rinner, router):
+    
+    # declare globals
+    global index
+    global h
+    
+    outwardsMode = 0
+    
+    if rstop > rs[index]:
+        outwardsMode = 1
     
     # initial metric constants
     gttri = gtt(rs[index])
@@ -70,43 +81,68 @@ def transitOrbit(rstop, router):
 
     # determine ur and uphi impulse from ro
 
-    l = np.sqrt((-1.0/router + 1.0/rstop)/(1.0/(rstop**2) - 1.0/(router**2) - 2.0/(rstop**3) + 2.0/(router**3)))
+    l = np.sqrt((-1.0/router + 1.0/rinner)/(1.0/(2*(rinner**2)) - 1.0/(2*(router**2)) - 1.0/(rinner**3) + 1.0/(router**3)))
     e = np.sqrt(gtt(router)*(-1 - (l**2)/gphiphi(router)))
     
-    utorbit = e/gtt(rs[index])
-    uphiorbit = l/gphiphi(rs[index])
+    print(e, l)
+    
+    utorbit = -e/gttri
+    uphiorbit = l/gphiphiri
+    # normalize
+    urorbit = np.sqrt((-1.0 - gttri*(utorbit**2) - gphiphiri*(uphiorbit**2))/grrri)
+    #if outwardsMode:
+    #    urorbit = -urorbit
     
     utboost = utorbit - uts[index]
     uphiboost = uphiorbit - uphis[index]
-    
-    global index
-    global h
+    urboost = urorbit - urs[index]
     
     startingRadius = rs[index]
     
     uts[index] = utorbit
     uphis[index] = uphiorbit
-    
-    #normalize
-    urs[index] = (-1.0 - gtt*(uts[index]**2) - gphiphi*(uphis[index]**2))/grr
+    urs[index] = urorbit
     
     print("time to loop!")
     
+    ret = 0;
+    
     while True:
         
-        if rs[index] < rstop:
-            return 0
-        elif rs[index] > startingRadius:
-            propers.pop()
-            ts.pop()
-            rs.pop()
-            phis.pop()
-            uts.pop()
-            urs.pop()
-            uphis.pop()
-            return 1
-        elif phis[index] > maxOrbits*2.0*np.pi:
-            return 2
+        # Loop ends
+        if outwardsMode:
+            if rs[index] > rstop:
+                ret = 0
+                break
+            elif rs[index] < startingRadius - 1:
+                if rs[index] < 2:
+                    propers.pop()
+                    ts.pop()
+                    rs.pop()
+                    phis.pop()
+                    uts.pop()
+                    urs.pop()
+                    uphis.pop()
+                ret = 1
+                break
+        else:
+            if rs[index] < rstop:
+                ret = 0
+                break
+            elif rs[index] > startingRadius+10:
+                if rs[index] > startingRadius*10:
+                    propers.pop()
+                    ts.pop()
+                    rs.pop()
+                    phis.pop()
+                    uts.pop()
+                    urs.pop()
+                    uphis.pop()
+                ret = 1
+                break
+        if phis[index] > maxOrbits*2.0*np.pi:
+            ret = 2
+            break
         
         if hVariation == 1:
             speed = linearSpeed(rs[index], urs[index], uphis[index])
@@ -117,8 +153,7 @@ def transitOrbit(rstop, router):
             elif h < minH:
                 h = minH
                 
-            print(h)
-            print(speed)
+            print("h", h, "speed", speed)
         
         #using p to denote prime
         #using c to denote current
@@ -179,6 +214,9 @@ def transitOrbit(rstop, router):
         urs.append(urf)
         uphis.append(uphif)
         index += 1
+        
+    print(utorbit, uphiorbit, urorbit, utboost, uphiboost, urboost, l, e)
+    return ret
 
 # polar plot
 
@@ -188,16 +226,17 @@ def transitOrbit(rstop, router):
 # rOuter - outer radius of the transfer orbit to take
 # function will return 0 if the orbit reached rStop normally, 1 if the orbit returned to the original radius again without reaching rStop
 
-roMultipliers = [1.0, 10.0, 100.0, 1000.0, 10000.0]
+roMultipliers = [1.0, 10.0, 100.0, 1000.0, 10000000000000000000000000000000000000000000000000000000.0]
 currentMultiplier = 0
 
 router = ri*roMultipliers[currentMultiplier]
 
 # example orbit
-ret = transitOrbit(rinner, router)
+ret = transitOrbit(rinner, rinner, router)
 if ret == 0:
     # successive orbits here
-    #ret = transitOrbit(rinner, router)
+    #rs[index] = rinner
+    #ret = transitOrbit(rship, rinner, router)
     if ret == 0:
         # each successive orbit is wrapped in another if
         print("placeholder")
@@ -205,7 +244,7 @@ if ret == 0:
 # =======================================================
 
 if ret == 0:
-    print("hit inner orbit")
+    print("hit target orbit")
 if ret == 1:
     print("returned to the starting radius!")
 if ret == 2:
